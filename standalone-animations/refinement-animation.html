@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refinement Animation v3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(101.63deg, rgb(241,236,250) 4.26%, rgb(221,232,247) 71.49%);
+      overflow: visible;
+    }
+
+    .outer {
+      width: 100%; height: 100%;
+      background: linear-gradient(101.63deg, rgb(241,236,250) 4.26%, rgb(221,232,247) 71.49%);
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* The 572×340 "page" viewport */
+    .inner {
+      width: 572px; height: 340px;
+      position: relative;
+      overflow: hidden;
+      transform: scale(1.5);
+      transform-origin: center center;
+    }
+
+    /* Scrollable wrapper */
+    .scroller {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+    }
+
+    /* White AI panel — matches Figma panel width/position */
+    .panel {
+      position: relative;           /* makes it offsetParent for children */
+      background: white;
+      width: 454px;
+      margin: 0 auto;
+      padding: 10px 10px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-family: 'Roboto Condensed', sans-serif;
+    }
+
+    /* ── Text styles ── */
+    .p   { font-size: 7.1px; line-height: 9.6px; letter-spacing:-0.064px; color:#000; font-weight:400; }
+    .lnk { color:#4685e5; text-decoration:underline; }
+    .div { width:100%; height:0.5px; background:#d8d8d8; display:block; margin:4px 0; }
+    .sec { font-size:7.7px; font-weight:700; color:#1a1a1a; line-height:11px; display:block; }
+    .h1  { font-size:9.5px; font-weight:700; color:#1a1a1a; line-height:13px; display:block; margin:5px 0 2px; }
+    .h2  { font-size:8.2px; font-weight:700; color:#1a1a1a; line-height:11px; display:block; margin:3px 0 1px; }
+    .pp  { font-size:7.1px; line-height:9.6px; letter-spacing:-0.064px; color:#000; font-weight:400; display:block; margin-bottom:2px; }
+    .ul  { margin:1px 0 2px 10px; font-size:7.1px; line-height:10px; color:#000; list-style:disc; }
+    .ul li { margin-bottom:1px; }
+
+    /* ── Metrics table ── */
+    .tbl { width:100%; border-collapse:collapse; margin:2px 0 4px; }
+    .tbl thead th {
+      font-family:'Roboto Condensed',sans-serif;
+      font-size:5.7px; font-weight:700; color:#888;
+      text-transform:uppercase; letter-spacing:0.1px;
+      padding:2px 4px; border-bottom:0.5px solid #d8d8d8;
+      text-align:left; background:white;
+    }
+    .tbl thead th.r { text-align:right; }
+    .tbl tbody td {
+      font-family:'Roboto Condensed',sans-serif;
+      padding:2.5px 4px; border-bottom:0.5px solid #ebebeb;
+      color:#4c4c4c; font-size:6.5px; line-height:9px; background:white;
+    }
+    .tbl tbody tr.alt td { background:#f6f7f7; }
+    .tbl td.r     { text-align:right; }
+    .tbl td.green { color:#00a300; }
+    .tbl td.bold  { font-weight:700; color:#161616; }
+
+    /* ── CTA row ── */
+    .cta-row {
+      display:flex; align-items:flex-start;
+      justify-content:space-between; gap:8px;
+    }
+    .cta-desc {
+      font-size:8.5px; line-height:11px; color:#1a1a1a; font-weight:700;
+      width:230px; flex-shrink:0; font-family:'Roboto Condensed',sans-serif;
+    }
+    .btn-group { display:flex; gap:2px; align-items:center; flex-shrink:0; }
+    .btn {
+      background:white; border:0.3px solid #ccc;
+      padding:1.8px 5.4px; height:16.3px; border-radius:0;
+      display:flex; align-items:center; gap:2px; flex-shrink:0;
+    }
+    .btn-lbl {
+      font-family:'Roboto Condensed',sans-serif;
+      font-weight:700; font-size:5.9px; line-height:9px;
+      color:#4c4c4c; text-transform:uppercase; white-space:nowrap;
+    }
+
+    /* ── Left gradient fade (removed) ── */
+    .left-fade {
+      display: none;
+    }
+
+    /* ── Cursor ── */
+    #cursor {
+      position:absolute;
+      width:12.882px; height:15.458px;
+      opacity:0; pointer-events:none; z-index:50;
+      filter:drop-shadow(0.644px 0.644px 1.288px rgba(0,0,0,0.25));
+    }
+
+    /* ── New screen overlay ── */
+    #newScreen {
+      position:absolute; inset:0; z-index:20;
+      opacity:0; pointer-events:none;
+    }
+    #newScreen img {
+      width:100%; height:100%; display:block;
+      object-fit:cover; object-position:top center;
+    }
+
+    /* ── Dropdown ── */
+    #dropdown {
+      position:absolute; z-index:40; pointer-events:none;
+      background:white; border:0.4px solid #d0d0d0;
+      box-shadow:0 1.5px 5px rgba(0,0,0,0.14);
+      min-width:88px; opacity:0; border-radius:0;
+    }
+    .drop-item {
+      font-family:'Roboto Condensed',sans-serif;
+      font-size:6.2px; font-weight:400; color:#1a1a1a;
+      padding:3.5px 6px; white-space:nowrap;
+      display:flex; align-items:center; gap:3px;
+      border-bottom:0.3px solid #ebebeb;
+    }
+    .drop-item:last-child { border-bottom:none; }
+    .drop-item.active { background:#eef3fb; }
+    .drop-icon { width:5px; height:5px; flex-shrink:0; }
+
+    /* ── Cursor 2 ── */
+    #cursor2 {
+      position:absolute; z-index:50; pointer-events:none;
+      opacity:0; width:11px; height:13px;
+      filter:drop-shadow(0.5px 0.5px 1px rgba(0,0,0,0.25));
+    }
+  </style>
+</head>
+<body>
+<div class="outer">
+  <div class="inner" id="inner">
+
+    <div class="scroller" id="scroller">
+      <div class="panel" id="panel">
+
+        <!-- Intro -->
+        <p class="p">Here's an analysis of the <strong>Client Portfolio</strong> <span class="lnk">(P:2011703)</span> compared to your <strong>Balanced Model, 65/35</strong> <span class="lnk">(P:2033914)</span>, with a proposal report and key talking points for your moderate risk client.</p>
+
+        <!-- Metrics table -->
+        <span class="div"></span>
+        <span class="sec">Client Portfolio vs. Balanced Model, 65/35: Key Metrics (as of 2026-04-02)</span>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:55%">METRIC</th>
+              <th class="r">Client Portfolio</th>
+              <th class="r">Balanced Model, 65/35</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="alt"><td>Total Return Level</td><td class="r">$27,920.81</td><td class="r">$30,277.14</td></tr>
+            <tr><td>Cumulative Total Return (since 2023-04-03)</td><td class="r green">+42.6%</td><td class="r green">+40.4%</td></tr>
+            <tr class="alt"><td>Standard Deviation (since inception)</td><td class="r">0.56%</td><td class="r">0.57%</td></tr>
+            <tr><td>Max Drawdown (since inception)</td><td class="r">23.16%</td><td class="r">22.82%</td></tr>
+            <tr class="alt"><td class="bold">Historical Sharpe Ratio (since inception)</td><td class="r">0.66</td><td class="r">0.60</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Proposal Report -->
+        <span class="h1">Proposal Report &amp; Key Talking Points</span>
+        <span class="h2">1. Performance</span>
+        <ul class="ul"><li><strong>Total Return:</strong></li></ul>
+        <span class="pp">The Client Portfolio edged ahead with a cumulative total return of +42.6%, slightly outperforming the Balanced Model, 65/35 at +40.4% over the tracked period.</span>
+        <ul class="ul"><li><strong>Portfolio Value:</strong></li></ul>
+        <span class="pp">While Client delivered a higher percentage gain, the Balanced Model's ending value ($30,277.14) is higher than Client ($27,920.81), likely reflecting differences in initial starting balances or contributions.</span>
+
+        <span class="h2">2. Risk Metrics</span>
+        <ul class="ul"><li><strong>Volatility (Standard Deviation):</strong></li></ul>
+        <span class="pp">Both portfolios display virtually identical risk, with Client at 0.56% and the Balanced Model at 0.57% daily standard deviation since inception. This fits well for a moderate risk profile.</span>
+        <ul class="ul"><li><strong>Max Drawdown:</strong></li></ul>
+        <span class="pp">Drawdown measures the peak-to-trough loss over the period. Client's drawdown was 23.16% vs. the Balanced Model's 22.82% — both consistent with moderate risk expectations and almost the same.</span>
+
+        <span class="h2">3. Risk-Adjusted Return</span>
+        <ul class="ul"><li><strong>Sharpe Ratio:</strong></li></ul>
+        <span class="pp">Client Portfolio had a Sharpe Ratio of 0.66, slightly higher than the Balanced Model's 0.60. This means Client delivered marginally better returns per unit of risk taken, highlighting efficiency.</span>
+
+        <!-- Key Recommendations -->
+        <span class="div"></span>
+        <span class="h1">Key Recommendations &amp; Discussion Points</span>
+        <ul class="ul"><li><strong>Portfolio Alignment:</strong></li></ul>
+        <span class="pp">Both portfolios are closely aligned in risk and drawdown, suitable for a moderate risk investor.</span>
+        <ul class="ul"><li><strong>Return Advantage:</strong></li></ul>
+        <span class="pp">Client Portfolio has delivered slightly higher returns, both in absolute and risk-adjusted terms, indicating strong management or asset selection within the moderate risk spectrum.</span>
+        <ul class="ul"><li><strong>Potential for Further Optimization:</strong></li></ul>
+        <span class="pp">The Balanced Model provides a slightly higher end value, with nearly identical risk and drawdown, suggesting that a hybrid approach or minor rebalancing could reap additional benefits.</span>
+        <ul class="ul"><li><strong>Consistency &amp; Comfort:</strong></li></ul>
+        <span class="pp">The narrow difference in volatility and drawdown suggests either portfolio would provide a consistent risk experience, which is crucial for moderate investors focused on growth without excessive fluctuations.</span>
+
+        <!-- CTA row -->
+        <span class="div"></span>
+        <div class="cta-row" id="ctaRow">
+          <p class="cta-desc"><strong>View chart of</strong> Total Return Level, Standard Deviation of Daily Returns (Since Inception), Max Drawdown (Since Inception), Historical Sharpe Ratio (Since Inception) for <strong>Client Portfolio (P:2011703)</strong>, <strong>Balanced Model, 65/35 (P:2033914)</strong></p>
+          <div class="btn-group">
+            <div class="btn" id="viewFundBtn">
+              <span class="btn-lbl">VIEW FUNDAMENTAL CHART</span>
+            </div>
+            <div class="btn">
+              <svg style="display:block;width:8.5px;height:8.5px;flex-shrink:0" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M20.0966 12.4979C19.5288 12.4979 19.0698 12.0379 19.0698 11.4711V8.19965L13.1885 14.0809C12.9883 14.2811 12.7254 14.3817 12.4625 14.3817C12.1997 14.3817 11.9368 14.2811 11.7366 14.0809C11.3351 13.6794 11.3351 13.0304 11.7366 12.6289L17.6178 6.74773H14.3464C13.7795 6.74773 13.3195 6.28772 13.3195 5.72091C13.3195 5.15411 13.7795 4.69409 14.3464 4.69409H19.8399C20.5474 4.69409 21.1234 5.27014 21.1234 5.97762V11.4711C21.1234 12.0379 20.6645 12.4979 20.0966 12.4979ZM5.97788 21.1232H16.965C17.6725 21.1232 18.2485 20.5472 18.2485 19.8397V17.0467C18.2485 16.4799 17.7895 16.0199 17.2217 16.0199C16.6539 16.0199 16.1949 16.4799 16.1949 17.0467V19.0696H6.748V9.62282H9.26271C9.83055 9.62282 10.2895 9.16281 10.2895 8.59601C10.2895 8.0292 9.83055 7.56919 9.26271 7.56919H5.97788C5.26936 7.56919 4.69434 8.14421 4.69434 8.85271V19.8397C4.69434 20.5472 5.26936 21.1232 5.97788 21.1232Z" fill="#666666"/></svg>
+              <span class="btn-lbl">EXPORT</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart: content.png cropped to chart area only (skip text+CTA at top of PNG) -->
+        <div style="width:100%;height:155px;margin-top:2px;background-image:url('../src/assets/content.png');background-size:100% auto;background-position:0 -185px;background-repeat:no-repeat"></div>
+
+      </div><!-- /panel -->
+    </div><!-- /scroller -->
+
+    <!-- Top fade (below newScreen) -->
+    <!-- Left gradient overlay -->
+    <div class="left-fade"></div>
+
+    <!-- Cursor -->
+    <div id="cursor">
+      <img src="../src/assets/cursor.png" style="position:absolute;inset:0;width:100%;height:100%;display:block" alt=""/>
+    </div>
+
+    <!-- Scene 3: New screen overlay -->
+    <div id="newScreen">
+      <img src="../src/assets/refinement-animation-image.png" alt=""/>
+    </div>
+
+    <!-- Scene 5: Dropdown -->
+    <div id="dropdown">
+      <div class="drop-item" id="di1">
+        <svg class="drop-icon" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 0.5v7M1.5 4.5L5 8l3.5-3.5M0.5 11h9" stroke="#555" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Export Data
+      </div>
+      <div class="drop-item" id="di2">
+        <svg class="drop-icon" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 0.5v7M1.5 4.5L5 8l3.5-3.5M0.5 11h9" stroke="#555" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Download Image
+      </div>
+      <div class="drop-item" id="di3" style="padding-left:14px">Print</div>
+      <div class="drop-item" id="di4">
+        <svg class="drop-icon" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 0.5v7M1.5 4.5L5 8l3.5-3.5M0.5 11h9" stroke="#555" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Download PDF
+      </div>
+    </div>
+
+    <!-- Scene 4+: Cursor 2 -->
+    <img id="cursor2" src="../src/assets/cursor.png" alt=""/>
+
+  </div><!-- /inner -->
+</div><!-- /outer -->
+
+<script>
+  // ─── Element refs ────────────────────────────────────────────────────────────
+  const inner   = document.getElementById('inner');
+  const scroller= document.getElementById('scroller');
+  const cursor  = document.getElementById('cursor');
+  const vfBtn   = document.getElementById('viewFundBtn');
+  const ctaRow  = document.getElementById('ctaRow');
+  const panel   = document.getElementById('panel');
+
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────────
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const raf  = ()  => new Promise(r => requestAnimationFrame(r));
+
+  function animate(el, props, dur, easing = 'ease-in-out') {
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      const tr = getComputedStyle(el).transform;
+      let s = 1, x = 0, y = 0;
+      if (tr && tr !== 'none') {
+        const m = tr.match(/matrix\(([^)]+)\)/);
+        if (m) { const v = m[1].split(',').map(Number); s = v[0]; x = v[4]; y = v[5]; }
+      }
+      const from = {};
+      for (const k in props) {
+        if      (k === 'opacity') from[k] = parseFloat(getComputedStyle(el).opacity) || 0;
+        else if (k === 'scale')   from[k] = s;
+        else if (k === 'x')       from[k] = x;
+        else if (k === 'y')       from[k] = y;
+      }
+      const ease = p => easing === 'ease-in-out'
+        ? (p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p+2,2)/2) : p;
+      const step = now => {
+        const p  = Math.min((now - t0) / dur, 1);
+        const ep = ease(p);
+        let cs = s, cx = x, cy = y;
+        for (const k in props) {
+          const v = from[k] + (props[k] - from[k]) * ep;
+          if      (k === 'opacity') el.style.opacity = v;
+          else if (k === 'scale')   cs = v;
+          else if (k === 'x')       cx = v;
+          else if (k === 'y')       cy = v;
+        }
+        if ('scale' in props || 'x' in props || 'y' in props)
+          el.style.transform = `translate(${cx}px,${cy}px) scale(${cs})`;
+        if (p < 1) requestAnimationFrame(step); else resolve();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  // ─── Scroll: position CTA row at ~28% from top of visible area ───────────────
+  // Uses offsetTop (NOT getBoundingClientRect) — unaffected by CSS transforms.
+  function applyScroll() {
+    // ctaRow.offsetTop is relative to panel (its offsetParent, has position:relative)
+    const ctaTop  = ctaRow.offsetTop;           // natural px from panel top
+    const visH    = 340 / 1.5;                  // visible content height in inner coords = 227px
+    const targetY = visH * 0.54;               // CTA appears at 54% from top ≈ 123px
+    const scrollPx = ctaTop - targetY;
+    scroller.style.transform = `translateY(${-scrollPx}px)`;
+  }
+
+  // ─── Element refs (scenes 3-5) ───────────────────────────────────────────────
+  const newScreenEl = document.getElementById('newScreen');
+  const dropdown    = document.getElementById('dropdown');
+  const c2          = document.getElementById('cursor2');
+
+  // ─── Animation (single play) ─────────────────────────────────────────────────
+  async function run() {
+    // Reset state instantly (all sync — browser paints AFTER this block)
+    vfBtn.style.background  = 'white';
+    cursor.style.opacity    = '0';
+    cursor.style.transform  = '';
+    cursor.style.transition = '';
+    inner.style.transition  = 'none';
+    inner.style.transform   = 'translate(0px,0px) scale(1.5)';
+    inner.style.webkitMaskImage = '';
+    inner.style.maskImage       = '';
+    newScreenEl.style.opacity = '0';
+    dropdown.style.opacity    = '0';
+    dropdown.style.transform  = '';
+    c2.style.opacity          = '0';
+    c2.style.transform        = '';
+    document.querySelectorAll('.drop-item').forEach(el => el.classList.remove('active'));
+    applyScroll();
+
+    // Wait a frame so the reset renders before we start measuring
+    await raf();
+    await raf();
+
+    // ── Frame 1: static hold ──
+    await wait(400);
+
+    // Measure button centre in inner's LOCAL coordinate space (÷1.5 for scale)
+    const innerRect = inner.getBoundingClientRect();
+    const btnRect   = vfBtn.getBoundingClientRect();
+    const btnCX = (btnRect.left + btnRect.width  / 2 - innerRect.left) / 1.5;
+    const btnCY = (btnRect.top  + btnRect.height / 2 - innerRect.top)  / 1.5;
+
+    // ── Cursor slides in from the right (fades in smoothly, no zoom) ──
+    const startX = Math.min(btnCX + 80, 562);
+    cursor.style.left       = startX + 'px';
+    cursor.style.top        = (btnCY - 1) + 'px';
+    cursor.style.opacity    = '0';
+    cursor.style.transition = 'left 0.55s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.35s ease-out';
+    await raf();
+    cursor.style.left    = (btnCX + 1) + 'px';
+    cursor.style.opacity = '1';
+    await wait(600);
+    cursor.style.transition = '';
+
+    // ── Hover pause ──
+    await wait(350);
+
+    // ── Click pulse ──
+    await animate(cursor, { scale: 0.82 }, 90);
+    await animate(cursor, { scale: 1.0  }, 90);
+
+    // ── Button turns blue (frame 2) ──
+    vfBtn.style.background = '#e5f2fc';
+
+    // ── Hold on frame 2 ──
+    await wait(800);
+
+    // ── Scene 3: Cross-fade to new screen ──
+    // Fade out Scene 1 cursor in parallel with the new screen fading in.
+    // Two-step fade: quickly pre-cover the panel to ~90% before switching the mask,
+    // so the panel top is nearly invisible when the top gradient is removed.
+    animate(cursor, { opacity: 0 }, 300);
+    await animate(newScreenEl, { opacity: 0.9 }, 200);
+    inner.style.webkitMaskImage = 'linear-gradient(to bottom, black 0%, black 82%, transparent 100%)';
+    inner.style.maskImage       = 'linear-gradient(to bottom, black 0%, black 82%, transparent 100%)';
+    await animate(newScreenEl, { opacity: 1 }, 700);
+    await wait(1500);
+
+    // ── Scene 4: Zoom toward Export CTA + cursor appear simultaneously ──
+    const expX  = 470;
+    const expY  = 62;
+    const zoom4 = 3.5;
+    const dS4   = zoom4 - 1.5;
+    const dx4   = (286 - expX) * dS4 * 0.9;
+    const dy4   = (170 - expY) * dS4 * 0.9;
+
+    // Set up cursor 2 starting position before kicking off both animations
+    const startX4 = Math.min(expX + 80, 562);
+    c2.style.left       = startX4 + 'px';
+    c2.style.top        = (expY - 19) + 'px';
+    c2.style.opacity    = '0';
+    c2.style.transition = 'left 0.55s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.35s ease-out';
+    await raf();
+
+    // Fire zoom and cursor slide simultaneously
+    const zoomPromise = animate(inner, { scale: zoom4, x: dx4, y: dy4 }, 1800);
+    c2.style.left    = (expX + 1) + 'px';
+    c2.style.opacity = '1';
+    await wait(600);
+    c2.style.transition = '';
+
+    // Hover + click happen DURING the zoom
+    await wait(350);
+    await animate(c2, { scale: 0.82 }, 90);
+    await animate(c2, { scale: 1.0  }, 90);
+
+    // Short pause after click, then open dropdown (zoom continues in background)
+    await wait(250);
+
+    // ── Scene 5: Dropdown appears ──
+    const ddLeft = 455;
+    const ddTop  = 55;
+    dropdown.style.left      = ddLeft + 'px';
+    dropdown.style.top       = ddTop  + 'px';
+    dropdown.style.transform = 'translateY(-3px)';
+    dropdown.style.transition = 'opacity 0.18s ease-out, transform 0.18s ease-out';
+    await raf();
+    dropdown.style.opacity   = '1';
+    dropdown.style.transform = 'translateY(0)';
+    await wait(230);
+    dropdown.style.transition = '';
+
+    // Cursor moves over each dropdown item sequentially
+    const dropCX  = ddLeft + 44;       // horizontal center of dropdown
+    const itemH   = 14;                 // item height in inner coords
+    const diIds   = ['di1','di2','di3','di4'];
+
+    for (let i = 0; i < diIds.length; i++) {
+      const itemCY = ddTop + i * itemH + itemH / 2;
+      c2.style.transition = 'left 0.15s ease-out, top 0.15s ease-out';
+      await raf();
+      c2.style.left = dropCX + 'px';
+      c2.style.top  = (itemCY - 1) + 'px';
+      document.querySelectorAll('.drop-item').forEach(el => el.classList.remove('active'));
+      document.getElementById(diIds[i]).classList.add('active');
+      await wait(160);
+    }
+    c2.style.transition = '';
+
+    // Final click on "Download PDF"
+    await animate(c2, { scale: 0.82 }, 90);
+    await animate(c2, { scale: 1.0  }, 90);
+
+    await wait(800);
+    run(); // loop
+  }
+
+  // ─── Preload images then start ────────────────────────────────────────────────
+  function preload(urls) {
+    return Promise.all(urls.map(u => new Promise(r => {
+      const img = new Image(); img.onload = img.onerror = r; img.src = u;
+    })));
+  }
+
+  window.addEventListener('load', async () => {
+    // Set initial scroll immediately so there's no flash of top-of-content
+    applyScroll();
+    // Preload all images before starting animation
+    await preload(['../src/assets/content.png','../src/assets/cursor.png','../src/assets/refinement-animation-image.png']);
+    // Recalculate scroll now that images are loaded (they affect panel height)
+    applyScroll();
+    run();
+  });
+</script>
+</body>
+</html>

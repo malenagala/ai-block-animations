@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Animation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+
+        .outer-container {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(118.553deg, rgb(241, 236, 250) 4.2557%, rgb(221, 232, 247) 71.485%);
+        }
+
+        .animation-wrapper {
+            width: 100%; height: 100%;
+            position: relative;
+            background: linear-gradient(118.553deg, rgb(241, 236, 250) 4.2557%, rgb(221, 232, 247) 71.485%);
+            border-radius: 16px;
+            overflow: clip;
+        }
+
+        .content-center {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ── Card ─────────────────────────────────────────────────── */
+        .frame-container {
+            height: 340px; width: 572px;
+            position: relative;
+            transform: scale(1.5);
+            transform-origin: center;
+        }
+
+        /* ── File chip ────────────────────────────────────────────── */
+        .file-chip {
+            position: absolute;
+            left: 367.7px; top: 30.7px;
+            width: 126.3px;
+            padding: 1.067px;
+            display: flex;
+        }
+        .file-chip-inner {
+            background: white;
+            border: 0.533px solid #ccc;
+            display: flex; flex: 1; gap: 2.5px;
+            height: 20.1px; align-items: center;
+            padding: 5px;
+        }
+        .file-icon-wrap {
+            display: flex; align-items: center; justify-content: center;
+            width: 12.6px; height: 12.6px; flex-shrink: 0;
+        }
+        .file-name {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400; font-size: 8.8px; line-height: 12.6px;
+            color: #4c4c4c; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; flex: 1;
+            letter-spacing: -0.1px;
+        }
+        .file-close-wrap {
+            display: flex; align-items: center; justify-content: center;
+            width: 12.6px; height: 12.6px; flex-shrink: 0;
+        }
+
+        /* ── Query text ───────────────────────────────────────────── */
+        .query-text {
+            position: absolute;
+            left: 219.3px; top: 64.6px;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400; font-size: 9.4px; line-height: 15.2px;
+            color: black; letter-spacing: -0.0643px;
+            width: 272.6px; white-space: pre-wrap;
+        }
+
+        /* ── Sparkle + response row ───────────────────────────────── */
+        .frame1-container {
+            position: absolute;
+            top: 134.5px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 8.1px; align-items: flex-start;
+        }
+
+        .sparkle-icon {
+            position: relative; flex-shrink: 0;
+            width: 23.3px; height: 23.3px;
+        }
+        .sparkle-inner {
+            position: absolute; inset: 14.79%;
+        }
+
+        /* ── Response container ───────────────────────────────────── */
+        .response-container {
+            background: white;
+            width: 426px; height: 205.3px;
+            position: relative; flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .response-container.visible { opacity: 1; }
+
+        /* Inner positioned area: matches Figma inner inset */
+        .response-inner {
+            position: absolute;
+            top: 10.1px; left: 10.1px;
+            width: 405.5px; height: 155.3px;
+        }
+
+        /* ── Gathering / loading section ──────────────────────────── */
+        .generating-section {
+            position: absolute;
+            top: 0; left: 0.19px;
+            width: 405.5px; height: 72.7px;
+            display: flex; flex-direction: column;
+            gap: 5.3px; justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .gathering-text {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400; font-size: 10.6px; line-height: 17.9px;
+            letter-spacing: 0.1px; white-space: nowrap;
+            /* shimmer */
+            background: linear-gradient(90deg, #4c4c4c 0%, #9c9c9c 40%, #4c4c4c 80%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 2s linear infinite;
+        }
+
+        .loading-bar {
+            height: 7.9px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(
+                103.86deg,
+                #b9d7f0 0%,
+                #daeef9 45%,
+                #b9d7f0 100%
+            );
+            background-size: 200% 100%;
+            animation: barShimmer 2.2s ease-in-out infinite;
+        }
+        .loading-bar.bar1 { width: 405.3px; animation-delay: 0s; }
+        .loading-bar.bar2 { width: 405.3px; animation-delay: 0.35s; }
+        .loading-bar.bar3 { width: 376.1px; animation-delay: 0.7s; }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        @keyframes barShimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Steps section ────────────────────────────────────────── */
+        /*
+         * Layout within steps-section (top = 0 aligns with first dot):
+         *   Rows at: 0, 20.49, 40.98, 61.76 px (top)
+         *   Row height (text line-height): 15.153px
+         *   Dot center-y per row: 15.153/2 = 7.577px
+         *   Dot half-height: 4.769/2 = 2.384px
+         *
+         *   Lines (between dot bottom → next dot top):
+         *     vline12: top=9.961  height=15.722
+         *     vline23: top=30.451 height=15.722
+         *     vline34: top=50.941 height=16.011
+         *
+         *   Line center-x: 0.19 + 2.384 - 0.4 = 2.174px  (0.8px wide)
+         */
+        .steps-section {
+            position: absolute;
+            top: 80.2px; left: 0;
+            width: 405.5px;
+        }
+
+        /* Vertical connector lines */
+        .vert-line {
+            position: absolute;
+            width: 0.8px;
+            left: 2.6px;
+            background: #d0d0d0;
+            opacity: 0;
+            transition: opacity 0.5s ease, background-color 0.45s ease;
+        }
+        .vert-line.visible  { opacity: 1; }
+        .vert-line.blue     { background: #0273CF; }
+
+        /* Step rows */
+        .step-row {
+            position: absolute;
+            left: 0.19px;
+            display: flex; gap: 4.7px; align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .step-row.visible { opacity: 1; }
+
+        /* Dots */
+        .dot {
+            width: 5.6px; height: 5.6px;
+            border-radius: 50%; flex-shrink: 0;
+            background: #b8b8b8;
+            transition: background-color 0.45s ease;
+        }
+        .dot.blue { background: #0273CF; }
+
+        .step-text {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400; font-size: 10.6px; line-height: 17.9px;
+            color: #666; letter-spacing: 0.056px; white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="outer-container">
+        <div class="animation-wrapper">
+            <div class="content-center">
+                <div class="frame-container">
+
+                    <!-- File chip -->
+                    <div class="file-chip">
+                        <div class="file-chip-inner">
+                            <div class="file-icon-wrap">
+                                <svg width="5.199" height="6.932" viewBox="0 0 5.2 7" fill="none">
+                                    <path d="M0.5 0.5 L3.2 0.5 L4.7 2 L4.7 6.5 L0.5 6.5 Z" stroke="#578cd8" stroke-width="0.5" fill="white"/>
+                                    <path d="M3.2 0.5 L3.2 2 L4.7 2" stroke="#578cd8" stroke-width="0.5" fill="none"/>
+                                    <line x1="1.1" y1="3.3" x2="4.1" y2="3.3" stroke="#578cd8" stroke-width="0.45"/>
+                                    <line x1="1.1" y1="4.4" x2="3.2" y2="4.4" stroke="#578cd8" stroke-width="0.45"/>
+                                </svg>
+                            </div>
+                            <p class="file-name">Prospect Statement.pdf</p>
+                            <div class="file-close-wrap">
+                                <svg width="5.333" height="5.333" viewBox="0 0 5.5 5.5" fill="none">
+                                    <line x1="0.75" y1="0.75" x2="4.75" y2="4.75" stroke="#666" stroke-width="0.7" stroke-linecap="round"/>
+                                    <line x1="4.75" y1="0.75" x2="0.75" y2="4.75" stroke="#666" stroke-width="0.7" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Query text -->
+                    <p class="query-text">My new prospect's statement is attached. They're a moderate risk investor. &#10;Analyze their portfolio and compare it to my Balanced Risk Profile Model. Generate a proposal report with key talking points included.</p>
+
+                    <!-- Sparkle + Response container -->
+                    <div class="frame1-container">
+
+                        <!-- Sparkle icon -->
+                        <div class="sparkle-icon">
+                            <div class="sparkle-inner">
+                                <svg style="display:block;width:100%;height:100%;" fill="none" viewBox="0 0 13.904 13.904">
+                                    <path d="M6.39267 0.474743C6.49694 -0.158248 7.40709 -0.158247 7.51135 0.474744C8.01162 3.51193 10.3921 5.8924 13.4293 6.39267C14.0623 6.49694 14.0623 7.40709 13.4293 7.51135C10.3921 8.01162 8.01162 10.3921 7.51135 13.4293C7.40709 14.0623 6.49694 14.0623 6.39267 13.4293C5.8924 10.3921 3.51193 8.01162 0.474743 7.51135C-0.158248 7.40709 -0.158247 6.49694 0.474744 6.39267C3.51193 5.8924 5.8924 3.51193 6.39267 0.474743Z" fill="url(#sp0)"/>
+                                    <path d="M6.95201 1.99303C7.7654 4.31066 9.5925 6.13836 11.91 6.95201C9.59279 7.76556 7.76556 9.59279 6.95201 11.91C6.13836 9.5925 4.31066 7.7654 1.99303 6.95201C4.31095 6.13851 6.13851 4.31095 6.95201 1.99303Z" stroke="url(#sp1)" stroke-opacity="0.2" stroke-width="1.84637"/>
+                                    <defs>
+                                        <linearGradient id="sp0" x1="2.08844" y1="-0.636864" x2="13.1874" y2="12.5531" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#0273CF"/>
+                                            <stop offset="0.465" stop-color="#578CD8"/>
+                                            <stop offset="1" stop-color="#A9C4EB"/>
+                                        </linearGradient>
+                                        <linearGradient id="sp1" x1="-2.92104" y1="-2.92104" x2="11.2365" y2="16.8251" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#0282E8"/>
+                                            <stop offset="1" stop-color="#ABBEFF" stop-opacity="0.9"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- White response box -->
+                        <div class="response-container" id="responseContainer">
+                            <div class="response-inner">
+
+                                <!-- Gathering data + loading bars -->
+                                <div class="generating-section">
+                                    <p class="gathering-text">Gathering data...</p>
+                                    <div class="loading-bar bar1"></div>
+                                    <div class="loading-bar bar2"></div>
+                                    <div class="loading-bar bar3"></div>
+                                </div>
+
+                                <!-- Steps + vertical lines -->
+                                <div class="steps-section">
+
+                                    <!-- Vertical connector lines (gray → blue) -->
+                                    <div class="vert-line" id="vline12" style="top: 11.75px; height: 18.55px;"></div>
+                                    <div class="vert-line" id="vline23" style="top: 35.93px; height: 18.55px;"></div>
+                                    <div class="vert-line" id="vline34" style="top: 60.11px; height: 18.89px;"></div>
+
+                                    <!-- Step 1 -->
+                                    <div class="step-row" id="step1" style="top: 0;">
+                                        <div class="dot" id="dot1"></div>
+                                        <p class="step-text">Parsing client statement</p>
+                                    </div>
+
+                                    <!-- Step 2 -->
+                                    <div class="step-row" id="step2" style="top: 24.18px;">
+                                        <div class="dot" id="dot2"></div>
+                                        <p class="step-text">Building portfolio from document</p>
+                                    </div>
+
+                                    <!-- Step 3 -->
+                                    <div class="step-row" id="step3" style="top: 48.36px;">
+                                        <div class="dot" id="dot3"></div>
+                                        <p class="step-text">Comparing to model portfolio</p>
+                                    </div>
+
+                                    <!-- Step 4 -->
+                                    <div class="step-row" id="step4" style="top: 72.88px;">
+                                        <div class="dot" id="dot4"></div>
+                                        <p class="step-text">Identifying allocation gaps</p>
+                                    </div>
+
+                                </div><!-- /steps-section -->
+                            </div><!-- /response-inner -->
+                        </div><!-- /response-container -->
+
+                    </div><!-- /frame1-container -->
+
+                </div><!-- /frame-container -->
+            </div><!-- /content-center -->
+        </div><!-- /animation-wrapper -->
+    </div><!-- /outer-container -->
+
+    <script>
+        const responseContainer = document.getElementById('responseContainer');
+        const steps   = ['step1','step2','step3','step4'].map(id => document.getElementById(id));
+        const dots    = ['dot1','dot2','dot3','dot4'].map(id => document.getElementById(id));
+        const lines   = ['vline12','vline23','vline34'].map(id => document.getElementById(id));
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function runAnimation() {
+
+            // ── Reset ────────────────────────────────────────────────
+            responseContainer.classList.remove('visible');
+            steps.forEach(s => s.classList.remove('visible'));
+            dots.forEach(d  => d.classList.remove('blue'));
+            lines.forEach(l => { l.classList.remove('visible', 'blue'); });
+
+            // ── 1. Pause, then fade in the response box ──────────────
+            await wait(800);
+            responseContainer.classList.add('visible');
+
+            // ── 2. Fade in all dots + lines together (gray) ──────────
+            await wait(500);
+            steps.forEach(s => s.classList.add('visible'));
+            lines.forEach(l => l.classList.add('visible'));
+
+            // ── 3. Let the fade complete, brief beat ─────────────────
+            await wait(800);
+
+            // ── 4. Dot 1 → blue ──────────────────────────────────────
+            dots[0].classList.add('blue');
+
+            // ── 5. Dot 2 → blue  +  line 1–2 → blue ─────────────────
+            await wait(850);
+            dots[1].classList.add('blue');
+            lines[0].classList.add('blue');
+
+            // ── 6. Dot 3 → blue  +  line 2–3 → blue ─────────────────
+            await wait(850);
+            dots[2].classList.add('blue');
+            lines[1].classList.add('blue');
+
+            // ── 7. Dot 4 → blue  +  line 3–4 → blue ─────────────────
+            await wait(850);
+            dots[3].classList.add('blue');
+            lines[2].classList.add('blue');
+
+            // ── 8. Hold, then loop ───────────────────────────────────
+            await wait(2200);
+            runAnimation();
+        }
+
+        runAnimation();
+    </script>
+</body>
+</html>

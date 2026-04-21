@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result Animation - Preview Match</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto Condensed', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(118.553deg, rgb(241, 236, 250) 4.2557%, rgb(221, 232, 247) 71.485%);
+      overflow: hidden;
+    }
+
+    .outer-container {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(118.553deg, rgb(241, 236, 250) 4.2557%, rgb(221, 232, 247) 71.485%);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+    }
+
+    .inner-container {
+      width: 572px;
+      height: 340px;
+      position: relative;
+      overflow: hidden;
+      transform: scale(1.5);
+      transform-origin: center center;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 80%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 80%, transparent 100%);
+    }
+
+    .scroll-container {
+      position: absolute;
+      width: 100%;
+      transition: transform 0s linear;
+    }
+
+    .query-text {
+      position: absolute;
+      left: 219.3px;
+      top: 64.6px;
+      width: 272.6px;
+      font-size: 9.4px;
+      line-height: 15.2px;
+      letter-spacing: -0.0643px;
+      color: black;
+      white-space: pre-wrap;
+      font-weight: 400;
+    }
+
+    .file-chip {
+      position: absolute;
+      left: 367.7px;
+      top: 30.7px;
+      width: 126.3px;
+      padding: 1.067px;
+      display: flex;
+    }
+
+    .file-chip-inner {
+      background: white;
+      border: 0.533px solid #ccc;
+      display: flex;
+      flex: 1;
+      gap: 2.5px;
+      height: 20.1px;
+      align-items: center;
+      padding: 5px;
+    }
+
+    .file-icon-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 12.6px;
+      height: 12.6px;
+      flex-shrink: 0;
+    }
+
+    .file-name {
+      font-family: 'Roboto Condensed', sans-serif;
+      font-weight: 400;
+      font-size: 8.8px;
+      line-height: 12.6px;
+      color: #4c4c4c;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      letter-spacing: -0.1px;
+    }
+
+    .file-close-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 12.6px;
+      height: 12.6px;
+      flex-shrink: 0;
+    }
+
+    .content-wrapper {
+      position: absolute;
+      left: 50%;
+      transform: translateX(calc(-50% + 0.5px));
+      top: 135.7px;
+      display: flex;
+      gap: 8.1px;
+      align-items: flex-start;
+    }
+
+    .icon-container {
+      width: 23.3px;
+      height: 23.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3.55px 0;
+      flex-shrink: 0;
+    }
+
+    .white-box {
+      background: white;
+      width: 426px;
+      min-height: 531px;
+      padding: 10.1px;
+      display: flex;
+      flex-direction: column;
+      gap: 7.4px;
+      flex-shrink: 0;
+    }
+
+    .body-text {
+      font-size: 7.1px;
+      line-height: 9.4px;
+      letter-spacing: -0.0643px;
+      color: black;
+      font-weight: 400;
+      flex-shrink: 0;
+      opacity: 1;
+    }
+
+    .chunk-block {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .chunk-block.visible {
+      opacity: 1;
+    }
+
+    /* ── Rich content styles ─────────────────────────────────────── */
+    .body-text a {
+      color: #0273CF;
+      text-decoration: underline;
+    }
+
+    .result-divider {
+      width: 100%;
+      height: 0.5px;
+      background: #dedede;
+      margin: 4px 0 3px 0;
+      display: block;
+    }
+
+    .result-section-title {
+      font-size: 7.7px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 11.8px;
+      margin-bottom: 3.5px;
+      display: block;
+    }
+
+    /* Larger heading for "Proposal Report..." and "Key Recommendations..." */
+    .result-main-heading {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 13px;
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+
+    /* Numbered section headings "1. Performance" etc. */
+    .result-sub-heading {
+      font-size: 8.2px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 11px;
+      display: block;
+      margin-top: 5px;
+      margin-bottom: 2px;
+    }
+
+    /* Body paragraph inside chunks */
+    .result-para {
+      font-size: 7.1px;
+      line-height: 9.4px;
+      letter-spacing: -0.0643px;
+      color: black;
+      font-weight: 400;
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    /* 3-column comparison table */
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+    }
+
+    .result-table thead th {
+      font-size: 5.7px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.15px;
+      padding: 2.4px 4.7px;
+      border-bottom: 0.5px solid #d8d8d8;
+      text-align: left;
+      background: white;
+      font-family: 'Roboto Condensed', sans-serif;
+    }
+
+    .result-table thead th.col-right {
+      text-align: right;
+    }
+
+    .result-table tbody td {
+      padding: 3px 4.7px;
+      border-bottom: 0.5px solid #ebebeb;
+      color: #4c4c4c;
+      font-size: 6.5px;
+      line-height: 9.4px;
+      font-family: 'Roboto Condensed', sans-serif;
+      background: white;
+    }
+
+    .result-table tbody tr.row-alt td {
+      background: #f6f7f7;
+    }
+
+    .result-table tbody td.td-right {
+      text-align: right;
+    }
+
+    .result-table tbody td.td-green {
+      color: #00a300;
+    }
+
+    .result-table tbody td.td-bold {
+      font-weight: 700;
+      color: #161616;
+    }
+
+    .result-bullets {
+      margin: 3px 0 1px 8.3px;
+      padding: 0;
+      font-size: 7.1px;
+      line-height: 10.6px;
+      color: black;
+      list-style: disc;
+    }
+
+    .result-bullets li {
+      margin-bottom: 1px;
+    }
+
+    /* Chart section */
+    .result-chart-desc {
+      font-size: 7.1px;
+      line-height: 9.4px;
+      color: #1a1a1a;
+      font-weight: 400;
+      margin-bottom: 5px;
+      display: block;
+      width: 260px;
+    }
+
+    .result-chart-btns {
+      display: flex;
+      gap: 1.8px;
+      margin-bottom: 5px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .result-chart-img {
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .result-chart-img img {
+      width: 100%;
+      display: block;
+    }
+
+    /* Footer row: feedback icons + smart compare button */
+    .result-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      padding: 2px 0;
+    }
+
+    .result-feedback-icons {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding-left: 4px;
+    }
+
+    .result-sources-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 4px;
+    }
+
+    /* Shared button style */
+    .button {
+      background: white;
+      border: 0.45px solid #ccc;
+      padding: 1.8px 5.4px;
+      height: 16.3px;
+      border-radius: 2.7px;
+      display: flex;
+      align-items: center;
+      gap: 1.8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .button-text {
+      font-weight: 700;
+      font-size: 5.9px;
+      line-height: 9.1px;
+      color: #4c4c4c;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .highlight-panel {
+      position: absolute;
+      background: rgba(2, 115, 207, 0.1);
+      border: 0.6px solid rgba(2, 115, 207, 0.4);
+      border-radius: 2.5px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 10;
+    }
+
+    .highlight-panel.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="outer-container" id="outerContainer">
+    <div class="inner-container" id="innerContainer">
+      <div class="scroll-container" id="scrollContainer">
+        <!-- File Chip -->
+        <div class="file-chip">
+          <div class="file-chip-inner">
+            <div class="file-icon-wrap">
+              <svg width="5.199" height="6.932" viewBox="0 0 5.2 7" fill="none">
+                <path d="M0.5 0.5 L3.2 0.5 L4.7 2 L4.7 6.5 L0.5 6.5 Z" stroke="#578cd8" stroke-width="0.5" fill="white"/>
+                <path d="M3.2 0.5 L3.2 2 L4.7 2" stroke="#578cd8" stroke-width="0.5" fill="none"/>
+                <line x1="1.1" y1="3.3" x2="4.1" y2="3.3" stroke="#578cd8" stroke-width="0.45"/>
+                <line x1="1.1" y1="4.4" x2="3.2" y2="4.4" stroke="#578cd8" stroke-width="0.45"/>
+              </svg>
+            </div>
+            <p class="file-name">Prospect Statement.pdf</p>
+            <div class="file-close-wrap">
+              <svg width="5.333" height="5.333" viewBox="0 0 5.5 5.5" fill="none">
+                <line x1="0.75" y1="0.75" x2="4.75" y2="4.75" stroke="#666" stroke-width="0.7" stroke-linecap="round"/>
+                <line x1="4.75" y1="0.75" x2="0.75" y2="4.75" stroke="#666" stroke-width="0.7" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <p class="query-text">My new prospect's statement is attached. They're a moderate risk investor. &#10;Analyze their portfolio and compare it to my Balanced Risk Profile Model. Generate a proposal report with key talking points included.</p>
+
+        <div class="content-wrapper">
+          <!-- Sparkle Icon -->
+          <div class="icon-container">
+            <svg width="19.746" height="19.746" viewBox="0 0 13.904 13.904" fill="none" style="display: block; width: 100%; height: 100%;">
+              <g>
+                <path d="M6.39267 0.474743C6.49694 -0.158248 7.40709 -0.158247 7.51135 0.474744C8.01162 3.51193 10.3921 5.8924 13.4293 6.39267C14.0623 6.49694 14.0623 7.40709 13.4293 7.51135C10.3921 8.01162 8.01162 10.3921 7.51135 13.4293C7.40709 14.0623 6.49694 14.0623 6.39267 13.4293C5.8924 10.3921 3.51193 8.01162 0.474743 7.51135C-0.158248 7.40709 -0.158247 6.49694 0.474744 6.39267C3.51193 5.8924 5.8924 3.51193 6.39267 0.474743Z" fill="url(#paint0_linear)" />
+                <path d="M6.95201 1.99303C7.7654 4.31066 9.5925 6.13836 11.91 6.95201C9.59279 7.76556 7.76556 9.59279 6.95201 11.91C6.13836 9.5925 4.31066 7.7654 1.99303 6.95201C4.31095 6.13851 6.13851 4.31095 6.95201 1.99303Z" stroke="url(#paint1_linear)" stroke-opacity="0.2" stroke-width="1.84637" />
+              </g>
+              <defs>
+                <linearGradient id="paint0_linear" x1="2.08844" y1="-0.636864" x2="13.1874" y2="12.5531" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#0273CF" />
+                  <stop offset="0.465" stop-color="#578CD8" />
+                  <stop offset="1" stop-color="#A9C4EB" />
+                </linearGradient>
+                <linearGradient id="paint1_linear" x1="-2.92104" y1="-2.92104" x2="11.2365" y2="16.8251" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#0282E8" />
+                  <stop offset="1" stop-color="#ABBEFF" stop-opacity="0.9" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <!-- White Box -->
+          <div class="white-box">
+            <img id="contentImg" src="../src/assets/result-content.png" style="width:100%;display:block;" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const innerContainer = document.getElementById('innerContainer');
+    const scrollContainer = document.getElementById('scrollContainer');
+    const contentImg     = document.getElementById('contentImg');
+
+    // ── Animate helper (scale / x / y / opacity) ────────────────────────
+    function animate(element, properties, duration, easing = 'ease-in-out') {
+      return new Promise((resolve) => {
+        const startTime = performance.now();
+        const startValues = {};
+        const currentTransform = getComputedStyle(element).transform;
+        let currentScale = 1, currentX = 0, currentY = 0;
+        if (currentTransform && currentTransform !== 'none') {
+          const m = currentTransform.match(/matrix\(([^)]+)\)/);
+          if (m) { const v = m[1].split(',').map(Number); currentScale = v[0]; currentX = v[4]; currentY = v[5]; }
+        }
+        for (const p in properties) {
+          if (p === 'opacity') startValues[p] = parseFloat(getComputedStyle(element).opacity) || 0;
+          else if (p === 'scale') startValues[p] = currentScale;
+          else if (p === 'x') startValues[p] = currentX;
+          else if (p === 'y') startValues[p] = currentY;
+        }
+        function ease(t) { return easing === 'ease-in-out' ? (t < 0.5 ? 2*t*t : -1+(4-2*t)*t) : t; }
+        function step(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const ep = ease(progress);
+          let scale = currentScale, x = currentX, y = currentY;
+          for (const p in properties) {
+            const val = startValues[p] + (properties[p] - startValues[p]) * ep;
+            if (p === 'opacity') element.style.opacity = val;
+            else if (p === 'scale') scale = val;
+            else if (p === 'x') x = val;
+            else if (p === 'y') y = val;
+          }
+          if ('scale' in properties || 'x' in properties || 'y' in properties)
+            element.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+          if (progress < 1) requestAnimationFrame(step); else resolve();
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    // ── Smooth scroll helper ─────────────────────────────────────────────
+    function smoothScroll(fromY, toY, duration) {
+      return new Promise((resolve) => {
+        const startTime = performance.now();
+        function step(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const t = progress < 0.5 ? 2*progress*progress : 1 - Math.pow(-2*progress+2,2)/2;
+          scrollContainer.style.transform = `translateY(${fromY + (toY - fromY) * t}px)`;
+          if (progress < 1) requestAnimationFrame(step); else resolve();
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ── Main loop ────────────────────────────────────────────────────────
+    async function runAnimation() {
+      scrollContainer.style.transform = 'translateY(0px)';
+      innerContainer.style.transform = '';
+      contentImg.style.opacity = '1';
+
+      await wait(800);
+
+      // Measure content height to know exactly how far to scroll
+      const scrollRect = scrollContainer.getBoundingClientRect();
+      const whiteBoxEl = document.querySelector('.white-box');
+      const wbRect = whiteBoxEl.getBoundingClientRect();
+      const contentBottomUnscaled = (wbRect.bottom - scrollRect.top) / 1.5;
+      const scrollAmt = Math.max(0, contentBottomUnscaled - 340 * 0.80 + 10);
+
+      // Scroll DOWN to reveal full content
+      await smoothScroll(0, -scrollAmt, 5500);
+      await wait(900);
+
+      // Scroll back UP to top
+      await smoothScroll(-scrollAmt, 0, 4800);
+      await wait(800);
+
+      // Fade out, then loop
+      await animate(contentImg, { opacity: 0 }, 500);
+      await wait(700);
+
+      runAnimation();
+    }
+
+    window.addEventListener('load', () => { runAnimation(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Animation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+
+        .outer-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(118.553deg, rgb(241, 236, 250) 4.2557%, rgb(221, 232, 247) 71.485%);
+        }
+
+        .animation-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(118.553deg, rgb(241, 236, 250) 4.2557%, rgb(221, 232, 247) 71.485%);
+            border-radius: 16px;
+            overflow: clip;
+            transform-origin: center center;
+        }
+
+        .content-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .frame6 {
+            height: 340px;
+            width: 572px;
+            position: relative;
+            transform: scale(1.5);
+            transform-origin: center;
+        }
+
+        /* Header */
+        .header-container {
+            position: absolute;
+            left: 242px;
+            top: 55px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-end;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 9.097px;
+            align-items: center;
+            position: relative;
+            flex-shrink: 0;
+            color: black;
+            text-align: center;
+            letter-spacing: -0.1px;
+        }
+
+        .header-title {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 700;
+            line-height: 17.057px;
+            min-width: 100%;
+            position: relative;
+            flex-shrink: 0;
+            font-size: 13.65px;
+            width: min-content;
+        }
+
+        .header-subtitle {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400;
+            line-height: 15.351px;
+            position: relative;
+            flex-shrink: 0;
+            font-size: 11.37px;
+            white-space: nowrap;
+        }
+
+        /* Input wrapper */
+        .input-wrapper {
+            position: absolute;
+            left: 106px;
+            top: 125px;
+            width: 359.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Filter bar */
+        .filter-container {
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 3.411px;
+            align-items: center;
+            justify-content: center;
+            padding: 3.411px 5.686px 3.411px 4.549px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .filter-icon-wrapper {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 2.843px 0;
+            position: relative;
+            border-radius: 20px;
+            flex-shrink: 0;
+            width: 11.371px;
+            height: 11.371px;
+        }
+
+        .filter-icon {
+            height: 4.549px;
+            position: relative;
+            flex-shrink: 0;
+            width: 6.823px;
+        }
+
+        .filter-icon-inner {
+            position: absolute;
+            top: -25%;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .filter-text {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400;
+            line-height: 9.666px;
+            position: relative;
+            flex-shrink: 0;
+            color: #4c4c4c;
+            font-size: 6.25px;
+            white-space: nowrap;
+        }
+
+        /* Input field — auto height, grows with content */
+        .input-field {
+            background: white;
+            position: relative;
+            flex-shrink: 0;
+            width: 100%;
+            min-height: 30.703px;
+            transition: height 0.32s ease;
+        }
+
+        .input-border {
+            position: absolute;
+            border: 0.569px solid #b2b2b2;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: 0px 0.569px 9.097px 0px rgba(87, 140, 216, 0.22);
+        }
+
+        /* Main row: left col (file + text) + right col (buttons, bottom-aligned) */
+        .input-main {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 5.686px;
+            padding: 9.097px;
+            width: 100%;
+        }
+
+        .input-left-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-start;
+            flex-shrink: 0;
+        }
+
+        /* File chip */
+        .file-chip {
+            width: 77px;
+            overflow: clip;
+            padding: 0.767px;
+            opacity: 0;
+            flex-shrink: 0;
+        }
+
+        .file-chip-inner {
+            display: flex;
+            flex: 1 0 0;
+            gap: 1.535px;
+            height: 12.277px;
+            align-items: center;
+            padding: 3.069px;
+            border: 0.384px solid #ccc;
+        }
+
+        .file-icon-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 7.673px;
+            height: auto;
+            flex-shrink: 0;
+            align-self: center;
+            transform: translateY(-1px);
+        }
+
+        .file-name {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400;
+            font-size: 5.37px;
+            line-height: 7.673px;
+            color: #4c4c4c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1 0 0;
+            letter-spacing: -0.1px;
+        }
+
+        .file-close-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 7.673px;
+            height: 7.673px;
+            flex-shrink: 0;
+        }
+
+        /* Typed text — wraps to fill width */
+        .input-text-wrapper {
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .input-text {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 400;
+            line-height: 11.371px;
+            position: relative;
+            font-size: 9.097px;
+            color: black;
+            letter-spacing: -0.0569px;
+            width: 294.681px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        /* Buttons — bottom-aligned via parent items-end */
+        .button-group {
+            display: flex;
+            flex: 1 0 0;
+            gap: 5.686px;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 1px;
+            min-width: 1px;
+            position: relative;
+        }
+
+        .attach-icon {
+            position: relative;
+            border-radius: 24px;
+            flex-shrink: 0;
+            width: 13.646px;
+            height: 13.646px;
+        }
+
+        .attach-icon-inner {
+            position: absolute;
+            left: 2.84px;
+            top: 2.84px;
+            width: 7.96px;
+            height: 7.96px;
+        }
+
+        .attach-icon-svg-wrapper {
+            position: absolute;
+            top: -7.14%;
+            left: -7.14%;
+            right: -7.14%;
+            bottom: -7.14%;
+        }
+
+        .enter-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.137px 2.274px;
+            position: relative;
+            border-radius: 20px;
+            flex-shrink: 0;
+            width: 18.194px;
+            height: 18.194px;
+            background-image: linear-gradient(139.92deg, rgb(2, 115, 207) 17.875%, rgb(87, 140, 216) 46.685%, rgb(169, 196, 235) 79.833%);
+            transition: transform 0.1s;
+        }
+
+        .arrow-wrapper {
+            height: 7.249px;
+            position: relative;
+            flex-shrink: 0;
+            width: 5.28px;
+        }
+
+        /* Mouse cursor */
+        .mouse-cursor {
+            position: absolute;
+            left: calc(50% + 239px);
+            top: calc(50% + 38px);
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .mouse-inner {
+            height: 14.121px;
+            position: relative;
+            width: 11.767px;
+            filter: drop-shadow(0.588px 0.588px 1.177px rgba(0,0,0,0.25));
+        }
+
+        .mouse-black {
+            position: absolute;
+            top: 4.89%;
+            right: 2.77%;
+            bottom: 3.59%;
+            left: 6.41%;
+        }
+
+        .mouse-white {
+            position: absolute;
+            top: 0;
+            right: -1.37%;
+            bottom: 0;
+            left: 1.37%;
+        }
+    </style>
+</head>
+<body>
+    <div class="outer-container">
+        <div class="animation-wrapper" id="animationWrapper">
+            <div class="content-center">
+                <div class="frame6">
+
+                    <!-- Header -->
+                    <div class="header-container">
+                        <div class="header-text">
+                            <p class="header-title">Hello, Caleb.</p>
+                            <p class="header-subtitle">How can I help you?</p>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="input-wrapper">
+
+                        <!-- Filter Bar -->
+                        <div class="filter-container">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; position: relative; border-radius: 4px; flex-shrink: 0;">
+                                <div class="filter-bar">
+                                    <div class="filter-icon-wrapper">
+                                        <div class="filter-icon">
+                                            <div class="filter-icon-inner">
+                                                <svg style="display: block; width: 100%; height: 100%;" fill="none" preserveAspectRatio="none" viewBox="0 0 6.82279 5.68566">
+                                                    <g>
+                                                        <line stroke="#4C4C4C" stroke-linecap="round" stroke-width="1.13713" x1="0.568566" x2="6.25423" y1="0.568566" y2="0.568566" />
+                                                        <line stroke="#4C4C4C" stroke-linecap="round" stroke-width="1.13713" x1="1.7057" x2="5.11709" y1="2.84283" y2="2.84283" />
+                                                        <line stroke="#4C4C4C" stroke-linecap="round" stroke-width="1.13713" x1="2.84283" x2="3.97996" y1="5.11709" y2="5.11709" />
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="filter-text">Filter Data Sets</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Input Field -->
+                        <div class="input-field" id="inputField">
+                            <div class="input-border" aria-hidden="true"></div>
+                            <div class="input-main">
+
+                                <!-- Left col: file chip + text -->
+                                <div class="input-left-col">
+
+                                    <!-- File chip — fades in at start -->
+                                    <div class="file-chip" id="fileChip">
+                                        <div class="file-chip-inner">
+                                            <!-- PDF icon -->
+                                            <div class="file-icon-wrap">
+                                                <svg width="3.74" height="4.988" viewBox="0 0 4 5.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M0.4 0.4 L2.4 0.4 L3.6 1.6 L3.6 5.1 L0.4 5.1 Z" stroke="#578cd8" stroke-width="0.45" fill="white"/>
+                                                    <path d="M2.4 0.4 L2.4 1.6 L3.6 1.6" stroke="#578cd8" stroke-width="0.45" fill="none"/>
+                                                    <line x1="0.9" y1="2.7" x2="3.1" y2="2.7" stroke="#578cd8" stroke-width="0.4"/>
+                                                    <line x1="0.9" y1="3.5" x2="2.5" y2="3.5" stroke="#578cd8" stroke-width="0.4"/>
+                                                </svg>
+                                            </div>
+                                            <!-- File name -->
+                                            <p class="file-name">Prospect Statement.pdf</p>
+                                            <!-- Close / X icon -->
+                                            <div class="file-close-wrap">
+                                                <svg width="3.837" height="3.837" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <line x1="0.5" y1="0.5" x2="3.5" y2="3.5" stroke="#666" stroke-width="0.6" stroke-linecap="round"/>
+                                                    <line x1="3.5" y1="0.5" x2="0.5" y2="3.5" stroke="#666" stroke-width="0.6" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Typed text -->
+                                    <div class="input-text-wrapper">
+                                        <p class="input-text" id="typedText"></p>
+                                    </div>
+
+                                </div>
+
+                                <!-- Right col: buttons, bottom-aligned -->
+                                <div class="button-group">
+                                    <div class="attach-icon">
+                                        <div class="attach-icon-inner">
+                                            <div class="attach-icon-svg-wrapper">
+                                                <svg style="display: block; width: 100%; height: 100%;" fill="none" preserveAspectRatio="none" viewBox="0 0 9.09706 9.09706">
+                                                    <g>
+                                                        <circle cx="4.54853" cy="4.54853" r="4.26425" stroke="#666666" stroke-width="0.568566" />
+                                                        <path clip-rule="evenodd" d="M6.44375 4.16948H4.92757V2.65331C4.92757 2.44408 4.75814 2.27426 4.54853 2.27426C4.33892 2.27426 4.16948 2.44408 4.16948 2.65331V4.16948H2.65331C2.4437 4.16948 2.27426 4.3393 2.27426 4.54853C2.27426 4.75776 2.4437 4.92757 2.65331 4.92757H4.16948V6.44375C4.16948 6.65298 4.33892 6.82279 4.54853 6.82279C4.75814 6.82279 4.92757 6.65298 4.92757 6.44375V4.92757H6.44375C6.65336 4.92757 6.82279 4.75776 6.82279 4.54853C6.82279 4.3393 6.65336 4.16948 6.44375 4.16948Z" fill="#666666" fill-rule="evenodd" />
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="enter-button" id="enterButton">
+                                        <div class="arrow-wrapper">
+                                            <svg style="position: absolute; display: block; width: 100%; height: 100%;" fill="none" preserveAspectRatio="none" viewBox="0 0 5.27954 7.24922">
+                                                <path clip-rule="evenodd" d="M0.163169 2.40542L2.63977 0L5.11637 2.40542C5.33393 2.61672 5.33393 2.95881 5.11637 3.16957C4.89937 3.38088 4.54716 3.38088 4.3296 3.16957L3.19619 2.06873V6.7088C3.19619 7.00711 2.94747 7.24922 2.63977 7.24922C2.33207 7.24922 2.08336 7.00711 2.08336 6.7088V2.06873L0.949939 3.16957C0.732381 3.38088 0.380171 3.38088 0.163169 3.16957C-0.0543895 2.95881 -0.0543895 2.61672 0.163169 2.40542Z" fill="white" fill-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Mouse Cursor -->
+            <div class="mouse-cursor" id="mouseCursor">
+                <div class="mouse-inner">
+                    <div class="mouse-black">
+                        <svg style="position: absolute; display: block; width: 100%; height: 100%;" fill="none" preserveAspectRatio="none" viewBox="0 0 10.6868 12.9239">
+                            <path d="M10.6868 6.77392L0 0L2.55753 12.3L5.52609 10.3391L7.71825 12.9239L9.49939 11.5424L7.71825 8.77936L10.6868 6.77392Z" fill="black" />
+                        </svg>
+                    </div>
+                    <div class="mouse-white">
+                        <svg style="position: absolute; display: block; width: 100%; height: 100%;" fill="none" preserveAspectRatio="none" viewBox="0 0 11.7675 14.121">
+                            <path d="M11.6138 7.2244L0.529641 0.0553352C0.415347 -0.0195196 0.265372 -0.0178945 0.151066 0.05696C0.036772 0.131815 -0.0194846 0.266556 0.00608767 0.398033L2.59431 13.1277C2.61643 13.2374 2.69314 13.3273 2.79887 13.3706C2.9046 13.4139 3.02389 13.4021 3.11939 13.339L5.95154 11.4856L7.66 13.9729C7.72649 14.0693 7.83388 14.121 7.94306 14.121C8.00788 14.121 8.07436 14.1026 8.13228 14.0645L10.3983 12.5821C10.4734 12.5338 10.5262 12.4573 10.5433 12.3707C10.5603 12.2843 10.5416 12.1943 10.4922 12.1212L8.78369 9.63207L11.6157 7.77866C11.7094 7.71715 11.7675 7.61223 11.7675 7.50082C11.7657 7.39103 11.7094 7.28623 11.6139 7.22461L11.6138 7.2244ZM8.12032 9.26419C8.04528 9.31247 7.99247 9.38895 7.97535 9.47552C7.95834 9.56199 7.97535 9.65193 8.02649 9.72504L9.73662 12.2141L8.03672 13.3254L6.32838 10.8381C6.2619 10.7417 6.1545 10.69 6.04532 10.69C5.9805 10.69 5.91402 10.7084 5.8561 10.7465L3.16381 12.5069L0.834758 1.05002L10.8109 7.50396L8.12032 9.26419Z" fill="white" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fullText = "My new prospect's statement is attached. They\u2019re a moderate risk investor. Analyze their portfolio and compare it to my Balanced Risk Profile Model. Generate a proposal report with key talking points included";
+        const typedTextEl = document.getElementById('typedText');
+        const animationWrapper = document.getElementById('animationWrapper');
+        const mouseCursor = document.getElementById('mouseCursor');
+        const enterButton = document.getElementById('enterButton');
+        const fileChip = document.getElementById('fileChip');
+        const inputField = document.getElementById('inputField');
+
+        let showCursor = true;
+        let cursorInterval;
+
+        // ── Animation helper ──────────────────────────────────────────────
+        function animate(element, properties, duration, easing = 'ease-in-out') {
+            return new Promise((resolve) => {
+                const startTime = performance.now();
+                const startValues = {};
+                const currentTransform = getComputedStyle(element).transform;
+
+                let currentScale = 1;
+                let currentX = 0;
+                let currentY = 0;
+
+                if (currentTransform && currentTransform !== 'none') {
+                    const matrix = currentTransform.match(/matrix\(([^)]+)\)/);
+                    if (matrix) {
+                        const values = matrix[1].split(',').map(v => parseFloat(v.trim()));
+                        currentScale = values[0];
+                        currentX = values[4];
+                        currentY = values[5];
+                    }
+                }
+
+                for (const prop in properties) {
+                    if (prop === 'opacity') {
+                        startValues[prop] = parseFloat(getComputedStyle(element).opacity) || 0;
+                    } else if (prop === 'scale') {
+                        startValues[prop] = currentScale;
+                    } else if (prop === 'x') {
+                        startValues[prop] = currentX;
+                    } else if (prop === 'y') {
+                        startValues[prop] = currentY;
+                    }
+                }
+
+                function easingFunction(t) {
+                    if (easing === 'ease-in-out') {
+                        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                    }
+                    return t;
+                }
+
+                function step(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easedProgress = easingFunction(progress);
+
+                    let scale = currentScale;
+                    let x = currentX;
+                    let y = currentY;
+
+                    for (const prop in properties) {
+                        const startValue = startValues[prop];
+                        let endValue = properties[prop];
+
+                        if (typeof endValue === 'string' && endValue.includes('%')) {
+                            const percentage = parseFloat(endValue);
+                            if (prop === 'x') {
+                                endValue = (animationWrapper.offsetWidth * percentage) / 100;
+                            } else if (prop === 'y') {
+                                endValue = (animationWrapper.offsetHeight * percentage) / 100;
+                            }
+                        }
+
+                        const currentValue = startValue + (endValue - startValue) * easedProgress;
+
+                        if (prop === 'opacity') {
+                            element.style.opacity = currentValue;
+                        } else if (prop === 'scale') {
+                            scale = currentValue;
+                        } else if (prop === 'x') {
+                            x = currentValue;
+                        } else if (prop === 'y') {
+                            y = currentValue;
+                        }
+                    }
+
+                    if ('scale' in properties || 'x' in properties || 'y' in properties) {
+                        element.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        resolve();
+                    }
+                }
+
+                requestAnimationFrame(step);
+            });
+        }
+
+        // ── Blinking cursor ───────────────────────────────────────────────
+        function startCursorBlink() {
+            cursorInterval = setInterval(() => {
+                showCursor = !showCursor;
+                updateDisplay();
+            }, 530);
+        }
+
+        function updateDisplay() {
+            const currentText = typedTextEl.textContent.replace(/[| ]$/, '');
+            typedTextEl.textContent = currentText + (showCursor ? '|' : ' ');
+        }
+
+        // ── Typing animation ──────────────────────────────────────────────
+        async function typeText() {
+            let index = 0;
+            const typingSpeed = 45;
+            let heightAnimating = false;
+
+            return new Promise((resolve) => {
+                function typeNextChar() {
+                    if (index < fullText.length) {
+                        // Measure height BEFORE adding the character
+                        const prevH = inputField.offsetHeight;
+
+                        const currentText = fullText.substring(0, index + 1);
+                        typedTextEl.textContent = currentText + (showCursor ? '|' : ' ');
+                        index++;
+
+                        // Check if a new line wrap just happened
+                        const newScrollH = inputField.scrollHeight;
+                        if (!heightAnimating && newScrollH > prevH + 2) {
+                            heightAnimating = true;
+                            // Lock box at old height so content is clipped momentarily
+                            inputField.style.height = prevH + 'px';
+                            inputField.style.overflow = 'hidden';
+                            // Next frame: transition to new height
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    inputField.style.height = newScrollH + 'px';
+                                });
+                            });
+                            // After transition completes, release explicit height
+                            setTimeout(() => {
+                                inputField.style.height = '';
+                                inputField.style.overflow = '';
+                                heightAnimating = false;
+                            }, 380);
+                        }
+
+                        setTimeout(typeNextChar, typingSpeed);
+                    } else {
+                        resolve();
+                    }
+                }
+                typeNextChar();
+            });
+        }
+
+        // ── Cursor + click sequence ───────────────────────────────────────
+        async function startZoom() {
+            // Start cursor off-screen (translate away from its CSS anchor point)
+            mouseCursor.style.transform = 'translate(-120px, -80px) scale(1)';
+            mouseCursor.style.opacity = '0';
+
+            // Fade in cursor
+            await animate(mouseCursor, { opacity: 1 }, 800);
+
+            // Move cursor to enter button (translate back to 0,0 = its CSS anchor)
+            await animate(mouseCursor, { x: 0, y: 0 }, 1500);
+
+            // Click animation
+            await animate(mouseCursor, { scale: 0.85 }, 100);
+            await animate(mouseCursor, { scale: 1 }, 100);
+
+            // Flash button — opacity only so the white arrow stays fixed
+            enterButton.style.opacity = '0.7';
+            setTimeout(() => { enterButton.style.opacity = '1'; }, 120);
+
+            // Hold briefly after click
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Fade out cursor
+            await animate(mouseCursor, { opacity: 0 }, 300);
+
+            // Reset cursor position
+            mouseCursor.style.transform = 'translate(-100px, -100px) scale(1)';
+        }
+
+        // ── Main loop ─────────────────────────────────────────────────────
+        async function runAnimation() {
+            // Reset state
+            typedTextEl.textContent = '';
+            fileChip.style.transition = 'none';
+            fileChip.style.opacity = '0';
+            inputField.style.height = '';
+            inputField.style.overflow = '';
+
+            // Brief pause before starting
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // File chip fades in directly
+            fileChip.style.transition = 'opacity 0.5s ease';
+            fileChip.style.opacity = '1';
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            // Show blinking cursor in empty field
+            typedTextEl.textContent = showCursor ? '|' : ' ';
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Type the text
+            await typeText();
+
+            // Pause after typing
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Cursor moves to enter button, clicks, zooms
+            await startZoom();
+
+            // Pause before looping
+            await new Promise(resolve => setTimeout(resolve, 400));
+
+            // Loop
+            runAnimation();
+        }
+
+        // ── Boot ──────────────────────────────────────────────────────────
+        startCursorBlink();
+        runAnimation();
+    </script>
+</body>
+</html>

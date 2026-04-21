@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Generation Animation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,500;0,700;1,400&family=Roboto:wght@700&display=swap" rel="stylesheet">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    *, *::before, *::after {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: geometricPrecision;
+    }
+    body, html { width:100%; height:100%; overflow:hidden; }
+    #root { width:100%; height:100%; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState, useEffect } = React;
+  const { motion, AnimatePresence } = Motion;
+
+  /* ── Figma asset URLs ─────────────────────────────────────────────── */
+  const SPARKLE   = "../src/assets/sparkle.png";
+  const CHART     = "../src/assets/chart_1.png";
+  const BARCHART  = "../src/assets/chart_2.png";
+
+  /* ── Dimensions ───────────────────────────────────────────────────── */
+  const W=572, H=340, CW=229, CH=293, CL=172, CT=24;
+
+  /* ── Font helpers ─────────────────────────────────────────────────── */
+  const RC  = (sz,w,it)=>({ fontSize:sz, fontFamily:"'Roboto Condensed',sans-serif", fontWeight:w||400, fontStyle:it?'italic':'normal', color:'#000' });
+  const ROW = { display:'flex', alignItems:'center', borderBottom:'0.3px solid #ececec', padding:'1.2px 0' };
+
+  function FadeIn({delay=0,y=0,x=0,style,children}){
+    return <motion.div initial={{opacity:0,y,x}} animate={{opacity:1,y:0,x:0}} transition={{duration:0.3,delay,ease:'easeOut'}} style={style}>{children}</motion.div>;
+  }
+
+  function Dots(){
+    return <>{[0,1,2].map(i=>(
+      <motion.span key={i} animate={{opacity:[0.3,1,0.3]}} transition={{duration:1.4,repeat:Infinity,delay:i*0.32,ease:'easeInOut'}} style={{display:'inline-block'}}>.</motion.span>
+    ))}</>;
+  }
+
+  /* ── Static gray border (matches GradientBorder thickness/hugging) ── */
+  function GrayBorder(){
+    return (
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',overflow:'visible'}}
+        preserveAspectRatio="none" viewBox={`0 0 ${CW} ${CH}`}>
+        <rect x="0.75" y="0.75" width={CW-1.5} height={CH-1.5} rx="7" fill="none" stroke="#c0c0c0" strokeWidth="1.5"/>
+      </svg>
+    );
+  }
+
+  /* ── Rotating gradient border ─────────────────────────────────────── */
+  function GradientBorder(){
+    return <>
+      {/* opaque white base so report card never bleeds through during crossfade */}
+      <div style={{position:'absolute',inset:0,borderRadius:7,background:'white'}}/>
+      {/* Figma card fill rgba(229,242,252) at higher opacity for correct light-blue look */}
+      <div style={{position:'absolute',inset:0,borderRadius:7,background:'rgba(229,242,252,0.85)'}}/>
+      {/* shimmer sweep – starts off-screen, no-repeat prevents tiling */}
+      <motion.div style={{
+        position:'absolute',inset:0,borderRadius:7,
+        background:'linear-gradient(135deg,transparent 0%,rgba(110,180,255,0.30) 38%,rgba(190,165,235,0.22) 62%,transparent 100%)',
+        backgroundSize:'280% 280%', backgroundRepeat:'no-repeat', backgroundPosition:'115% 115%',
+      }} animate={{backgroundPosition:['115% 115%','-15% -15%']}} transition={{duration:3,repeat:Infinity,ease:'linear'}}/>
+      {/* rotating gradient stroke */}
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',overflow:'visible'}} preserveAspectRatio="none" viewBox={`0 0 ${CW} ${CH}`}>
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0273cf"><animate attributeName="stop-color" values="#0273cf;#A484DE;#0273cf" dur="2s" repeatCount="indefinite"/></stop>
+            <stop offset="50%" stopColor="#A484DE"><animate attributeName="stop-color" values="#A484DE;#0273cf;#A484DE" dur="2s" repeatCount="indefinite"/></stop>
+            <stop offset="100%" stopColor="#0273cf"><animate attributeName="stop-color" values="#0273cf;#A484DE;#0273cf" dur="2s" repeatCount="indefinite"/></stop>
+            <animateTransform attributeName="gradientTransform" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="3.5s" repeatCount="indefinite"/>
+          </linearGradient>
+        </defs>
+        <rect x="0.75" y="0.75" width={CW-1.5} height={CH-1.5} rx="7" fill="none" stroke="url(#bg)" strokeWidth="1.5"/>
+      </svg>
+    </>;
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     SCENE 1 — Loading / Generating
+  ════════════════════════════════════════════════════════════════════ */
+  function SceneLoading(){
+    return (
+      <motion.div initial={{opacity:1}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.45}}
+        style={{position:'absolute',inset:0}}>
+        <div style={{position:'absolute',left:CL,top:CT,width:CW,height:CH,borderRadius:7,overflow:'hidden'}}>
+          <GradientBorder/>
+          {/* content – centred, slight right nudge matching Figma */}
+          <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:9,paddingLeft:10}}>
+            <motion.img src={SPARKLE} alt=""
+              animate={{scale:[1,1.13,1]}} transition={{duration:1.9,repeat:Infinity,ease:'easeInOut'}}
+              style={{width:40,height:40,objectFit:'contain',display:'block'}}/>
+            {/* Roboto Condensed Medium (500) — matches Figma exactly */}
+            <div style={{
+              fontSize:13.5, fontWeight:600, fontFamily:"'Roboto Condensed',sans-serif",
+              background:'linear-gradient(171deg,#0273CF 18%,#A484DE 68%)',
+              WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
+              whiteSpace:'nowrap', transform:'translateZ(0)', backfaceVisibility:'hidden',
+            }}>Generating Report<Dots/></div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     SCENE 2 — Portfolio Proposal document
+     Layout from Figma (portrait→landscape transform):
+       y=0–41   title bar
+       y=41     top divider
+       y=41–171 upper section  (left: chart | right: basic info + returns)
+       y=171    mid divider
+       y=171–280 lower section (left: bar chart | right: key stats)
+       y=280+   disclaimer
+     Column split at x≈143 (left) / x≈153 (right)
+  ════════════════════════════════════════════════════════════════════ */
+  const PAD=9, SPLIT=143, RIGHT_X=153;
+  const RETURN_ROWS=[
+    ['YTD','3.92%','7.47%','0.68%'],['1Y','16.40%','29.92%','16.99%'],
+    ['3Y','17.04%','22.93%','21.80%'],['5Y','--','13.73%','14.19%'],
+    ['10Y','--','13.36%','15.50%'],['15Y','--','9.53%','13.68%'],
+  ];
+  const KEY_ROWS=[
+    ['Net Exp. Ra.','0.33%','3.44%','3.44%'],['Cash Net Al.','--','--','--'],
+    ['Alpha (5Y)','2.93%','0.47%','6.466'],['Distrib. Yie.','--','2.19%','--'],
+    ['Beta (5Y)','--','1.008','--'],['YTD Total R.','--','0.42%','0.56%'],
+  ];
+  const DOTS=[['#0273cf','Prospect - SEP IRA (Nov 2023)'],['#6833C9','Balanced Risk Profile Model'],['#FFA870','S&P 500 Total Return']];
+
+  function SceneReport(){
+    return (
+      <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.25}}
+        style={{position:'absolute',inset:0}}>
+
+        {/* Report image — fills card exactly (2452×3139 matches 229×293 aspect perfectly) */}
+        <div style={{
+          position:'absolute',left:CL,top:CT,width:CW,height:CH,
+          borderRadius:7,overflow:'hidden',
+        }}>
+          <img src="../src/assets/report_base.png" alt=""
+            style={{width:'100%',height:'100%',objectFit:'fill',display:'block'}}/>
+          <GrayBorder/>
+        </div>
+
+        {/* PDF tag — fades in after report is visible */}
+        <motion.img src="../src/assets/report_tag.png" alt=""
+          initial={{opacity:0}}
+          animate={{opacity:1}}
+          transition={{duration:0.35,delay:0.45,ease:'easeOut'}}
+          style={{
+            position:'absolute',
+            left: CL + CW - 48,
+            top:  CT + 6,
+            width: 60,
+            display:'block',
+            zIndex:10,
+          }}/>
+
+      </motion.div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     APP
+  ════════════════════════════════════════════════════════════════════ */
+  const TIMINGS={loading:2200,flash:340,report:3400};
+  const NEXT={loading:'flash',flash:'report',report:'loading'};
+
+  function App(){
+    const [scene,setScene]=useState('loading');
+    useEffect(()=>{
+      const t=setTimeout(()=>setScene(s=>NEXT[s]),TIMINGS[scene]);
+      return ()=>clearTimeout(t);
+    },[scene]);
+    return (
+      <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',
+        background:'linear-gradient(118.553deg,rgb(241,236,250) 4.2557%,rgb(221,232,247) 71.485%)'}}>
+        <div style={{position:'relative',width:W,height:H,transform:'scale(1.5)',transformOrigin:'center'}}>
+          <AnimatePresence mode="sync">
+            {scene==='loading' && <SceneLoading key="loading"/>}
+            {scene==='report'  && <SceneReport  key="report"/>}
+          </AnimatePresence>
+          {/* White flash scoped to card area only — initial:0 so it never shows on first render */}
+          <motion.div initial={{opacity:0}} style={{position:'absolute',left:CL,top:CT,width:CW,height:CH,borderRadius:7,background:'white',pointerEvents:'none',zIndex:5}}
+            animate={{opacity:scene==='flash'?1:0}} transition={{duration:0.17}}/>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
