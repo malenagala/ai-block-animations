@@ -19,66 +19,22 @@
       /* Tablet: constrain width so margin-left:auto creates a visible right-aligned gap */
       @media (max-width: 1023px) { #anim-typing { height: 360px; max-width: 560px; } }
       @media (max-width: 767px)  { #anim-typing { height: 280px; } }
-      #anim-typing iframe { position: absolute; border: none; }
+      #anim-typing video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
     </style>
 
     <div id="anim-typing">
-      <!-- ↓ Change src to swap the animation -->
-      <iframe id="anim-frame" src="../standalone-animations/result-animation.html" scrolling="no"></iframe>
+      <!-- ↓ Replace YOUR-VIDEO-URL with the URL from WordPress Media Library -->
+      <video autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:16px;">
+        <source src="YOUR-VIDEO-URL" type="video/mp4">
+        <source src="YOUR-VIDEO-URL" type="video/quicktime">
+      </video>
     </div>
 
-    <script>
+        <script>
     (function () {
-
-      // ─── CANVAS SIZE ──────────────────────────────────────────────────────
-      // The size (in px) at which the animation was designed.
-      // This defines what "zoom 1.0" looks like — the full canvas at this size
-      // is scaled to fit inside the container.
-      // ─────────────────────────────────────────────────────────────────────
-      var CANVAS_W = 900;
-      var CANVAS_H = 816;
-
-      // ════════════════════════════════════════════════════
-      //  DESKTOP  (window wider than 1023px)
-      //
-      //  zoom  — 1.0 = full animation fits the container
-      //          1.5 = zoomed in 1.5×, shows a cropped portion
-      //  panX  — shifts the animation LEFT (negative) or RIGHT (positive)
-      //  panY  — shifts the animation UP (negative) or DOWN (positive)
-      // ════════════════════════════════════════════════════
-      var DESKTOP = {
-        zoom: 1.5,
-        panX: -15,
-        panY: 0
-      };
-
-      // ════════════════════════════════════════════════════
-      //  TABLET  (769px – 1023px)
-      // ════════════════════════════════════════════════════
-      var TABLET = {
-        zoom: 1.1,
-        panX: 0,
-        panY: 0
-      };
-
-      // ════════════════════════════════════════════════════
-      //  MOBILE  (up to 768px)
-      // ════════════════════════════════════════════════════
-      var MOBILE = {
-        zoom: 1.1,
-        panX: 0,
-        panY: 0
-      };
-
-      // ── No need to edit below this line ──────────────────────────────────
       function apply() {
         var w = window.innerWidth;
-        var s = w <= 768 ? MOBILE : w <= 1023 ? TABLET : DESKTOP;
-
         var container = document.getElementById('anim-typing');
-
-        // Mobile full-bleed: use a negative margin equal to the parent's distance
-        // from the viewport left edge to break out of content-container padding.
         if (w <= 767) {
           var parentLeft = container.parentElement.getBoundingClientRect().left;
           container.style.marginLeft = '-' + parentLeft + 'px';
@@ -89,29 +45,9 @@
           container.style.width      = '';
           container.style.maxWidth   = '';
         }
-
-        var cW = container.offsetWidth;
-        var cH = container.offsetHeight;
-        var f  = document.getElementById('anim-frame');
-
-        // Scale the canvas to fill the container, then apply zoom/pan
-        var fitScale = Math.min(cW / CANVAS_W, cH / CANVAS_H);
-        var scale    = fitScale * s.zoom;
-
-        var left = (cW - CANVAS_W * scale) / 2 + s.panX;
-        var top  = (cH - CANVAS_H * scale) / 2 + s.panY;
-
-        f.style.width           = CANVAS_W + 'px';
-        f.style.height          = CANVAS_H + 'px';
-        f.style.transformOrigin = 'top left';
-        f.style.transform       = 'scale(' + scale + ')';
-        f.style.left            = left + 'px';
-        f.style.top             = top  + 'px';
       }
-
       apply();
       window.addEventListener('resize', apply);
-
     })();
     </script>
   </div>
